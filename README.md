@@ -40,6 +40,26 @@ AttnRes_Scaled/
 └── 📄 run_vanilla.sh    # One-click script for Baseline (Vanilla) experiments
 ```
 
+## ⚡ Run Scripts
+
+We provide unified entry points for both standard Transformer (Vanilla) and Attention-Residual architectures. 
+
+### 1. Single-GPU Training (Rapid Prototyping)
+Use these commands to verify code logic or run small-scale experiments on a single device:
+
+```bash
+# Run Vanilla Transformer Baseline
+CUDA_VISIBLE_DEVICES=7 python train.py --config configs/tiny.yaml --model_type vanilla
+
+# Run Attention-Residual Architecture
+CUDA_VISIBLE_DEVICES=7 python train.py --config configs/tiny.yaml --model_type attnres_block
+
+# Distributed training on 8 GPUs
+torchrun --nproc_per_node=8 train.py \
+    --config configs/tiny.yaml \
+    --model_type attnres_block
+```
+
 ## 🚀 Next Steps: Vision & Multimodal Validation
 
 We aim to extend the **Attention-Residual Scaling Law** analysis beyond text:
