@@ -1,0 +1,53 @@
+# ============================================================
+# Tiny  (~22 M total params, ~10 M non-embedding)
+# Architecture: GPT-2 style (absolute pos emb, MHA, GELU MLP)
+#   d_model=256, n_layers=12 full blocks (each = 1 attn + 1 MLP), n_heads=8
+# Dataset: wikitext-2  (~2 M tokens)
+# Purpose: Rapid ablation & debugging. Completes in minutes on 1 GPU.
+# Run:
+#   # single GPU
+#   CUDA_VISIBLE_DEVICES=7 python train.py --config configs/tiny.yaml --model_type vanilla
+#   CUDA_VISIBLE_DEVICES=7 python train.py --config configs/tiny.yaml --model_type attnres_block
+#
+#   # multi-GPU (e.g. 4 GPUs)
+#   torchrun --nproc_per_node=4 train.py --config configs/tiny.yaml --model_type attnres_block
+# ============================================================
+
+experiment:
+  seed: 42
+
+dataset:
+  scale: "small"              # wikitext-2-raw-v1 (~2 M tokens)
+  max_seq_len: 1024
+  batch_size: 128              # per-GPU micro-batch
+  grad_accum_steps: 4         # effective batch = 16 × 4 = 64 per GPU
+  num_workers: 4
+  cache_dir: null             # null → ~/.cache/attnres_scaled/
+
+model:
+  d_model: 256                # → GPTConfig.n_embd
+  n_layers: 12                # → GPTConfig.n_layer (full blocks, NOT sub-layers)
+  n_heads: 8                  # → GPTConfig.n_head
+  vocab_size: 256             # byte-level (ord(c) % 256), matches wikitext loader
+  max_seq_len: 1024           # → GPTConfig.block_size
+  dropout: 0.0
+  n_blocks: 4                 # AttnRes only: number of Block AttnRes blocks N
+  # Keys below are kept for reference but are NOT used by the GPT-2 style architecture:
+  n_kv_heads: 2               # (ignored — GPT-2 uses standard MHA, not GQA)
+  ffn_mult: 2.667             # (ignored — GPT-2 uses fixed 4× MLP expansion)
+  rope_theta: 10000.0         # (ignored — GPT-2 uses absolute positional embeddings)
+
+training:
+  max_steps: 10000
+  warmup_steps: 500           # 5 % of total steps
+  max_lr: 3.0e-4
+  min_lr: 3.0e-5              # 10 % of max_lr (cosine tail)
+  weight_decay: 0.1
+  grad_clip: 1.0
+  eval_interval: 500
+  save_interval: 2000
+  log_interval: 50
+  dtype: "bfloat16"           # "bfloat16" | "float16" | "float32"
+
+output:
+  run_dir: "./runs"

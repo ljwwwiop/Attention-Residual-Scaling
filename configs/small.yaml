@@ -1,0 +1,49 @@
+# ============================================================
+# Small  (~97 M total params, ~73 M non-embedding)
+# Architecture: GPT-2 style (absolute pos emb, MHA, GELU MLP)
+#   d_model=512, n_layers=24 full blocks (each = 1 attn + 1 MLP), n_heads=8
+# Dataset: wikitext-103  (~103 M tokens)
+# Purpose: Standard LM benchmark scale.
+# Run:
+#   torchrun --nproc_per_node=4 train.py --config configs/small.yaml --model_type vanilla
+#   torchrun --nproc_per_node=4 train.py --config configs/small.yaml --model_type attnres_block
+# ============================================================
+
+experiment:
+  seed: 42
+
+dataset:
+  scale: "medium"             # wikitext-103-raw-v1 (~103 M tokens)
+  max_seq_len: 1024
+  batch_size: 128               # per-GPU micro-batch
+  grad_accum_steps: 4         # effective batch = 8 × 8 × n_gpus tokens
+  num_workers: 4
+  cache_dir: null
+
+model:
+  d_model: 512                # → GPTConfig.n_embd
+  n_layers: 24                # → GPTConfig.n_layer (full blocks, NOT sub-layers)
+  n_heads: 8                  # → GPTConfig.n_head
+  vocab_size: 256             # byte-level (ord(c) % 256), matches wikitext loader
+  max_seq_len: 1024           # → GPTConfig.block_size
+  dropout: 0.0
+  n_blocks: 8                 # AttnRes only: Block AttnRes N blocks
+  # Keys below are NOT used by the GPT-2 style architecture:
+  n_kv_heads: 2               # (ignored — GPT-2 uses standard MHA, not GQA)
+  ffn_mult: 2.667             # (ignored — GPT-2 uses fixed 4× MLP expansion)
+  rope_theta: 10000.0         # (ignored — GPT-2 uses absolute positional embeddings)
+
+training:
+  max_steps: 50000
+  warmup_steps: 1000          # 2 % warmup
+  max_lr: 3.0e-4
+  min_lr: 3.0e-5
+  weight_decay: 0.1
+  grad_clip: 1.0
+  eval_interval: 1000
+  save_interval: 5000
+  log_interval: 100
+  dtype: "bfloat16"
+
+output:
+  run_dir: "runs"

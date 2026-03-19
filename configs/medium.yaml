@@ -1,0 +1,54 @@
+# ============================================================
+# Medium  (~354 M total params, ~303 M non-embedding)
+# Architecture: GPT-2 style (absolute pos emb, MHA, GELU MLP)
+#   n_layers=24, n_heads=16, head_dim=64, d_model=1024
+#   Matches GPT-2 medium (350 M) exactly.
+# AttnRes: disabled (vanilla) by default; enable with --model_type attnres_block
+#   AttnRes extra params (n_blocks=8, 2×24×1024 pseudo-queries): ~49 K
+# Dataset: openwebtext  (~1 B tokens, capped at 300 K documents)
+# Purpose: Medium-scale scaling-law point. Requires ≥ 2 × A100 80 GB. # attnres_full
+# Run: CUDA_VISIBLE_DEVICES=7
+#   torchrun --nproc_per_node=4 train.py --config configs/medium.yaml --model_type vanilla
+#   torchrun --nproc_per_node=4 train.py --config configs/medium.yaml --model_type attnres_block
+# ============================================================
+
+experiment:
+  seed: 42
+
+dataset:
+  scale: "large"              # openwebtext (cap: 300 K documents ≈ 1 B tokens)
+  max_seq_len: 1024
+  batch_size: 8               # per-GPU micro-batch
+  grad_accum_steps: 16        # effective batch = 8 × 16 × n_gpus tokens
+  num_workers: 8
+  cache_dir: null
+  max_docs: 300000            # override the default cap if desired
+
+model:
+  d_model: 1024               # → GPTConfig.n_embd
+  n_layers: 24                # → GPTConfig.n_layer (full blocks, NOT sub-layers)
+  n_heads: 16                 # → GPTConfig.n_head  (head_dim = 64)
+  vocab_size: 50257
+  max_seq_len: 1024           # → GPTConfig.block_size
+  dropout: 0.0
+  n_blocks: 6                 # AttnRes only: number of BlockAttnRes blocks
+  # Keys below are NOT used by the GPT-2 style architecture:
+  n_kv_heads: 4               # (ignored — GPT-2 uses standard MHA, not GQA)
+  ffn_mult: 2.667             # (ignored — GPT-2 uses fixed 4× MLP expansion)
+  rope_theta: 10000.0         # (ignored — GPT-2 uses absolute positional embeddings)
+
+
+training:
+  max_steps: 100000
+  warmup_steps: 2000          # 2 % warmup
+  max_lr: 1.0e-4              # lower LR for larger model
+  min_lr: 1.0e-5
+  weight_decay: 0.1
+  grad_clip: 1.0
+  eval_interval: 1000
+  save_interval: 1000
+  log_interval: 100
+  dtype: "bfloat16"
+
+output:
+  run_dir: "runs"

@@ -1,0 +1,27 @@
+# AttnRes Scaling-Law Experiments
+# ================================
+# Install: pip install -r requirements.txt
+
+# Core deep learning
+torch>=2.1.0
+# (install torchvision / torchaudio only if needed)
+
+# HuggingFace datasets (text corpus loading)
+datasets>=2.14.0
+huggingface_hub>=0.17.0
+
+# Fast tokenizer (GPT-2 BPE, 50257 vocab)
+tiktoken>=0.5.0
+
+# Config files
+pyyaml>=6.0
+
+# Numerical utilities
+numpy>=1.24.0
+
+# Optional: faster tokenisation / fallback tokenizer
+# transformers>=4.35.0
+
+# Optional: experiment tracking
+# wandb>=0.15.0
+# tensorboard>=2.14.0
