@@ -4,7 +4,7 @@
 [![Python-Version](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C.svg)](https://pytorch.org/)
 
-This project is dedicated to the **Reproduction** and **Validation** of the core architectural insights proposed by [Kimi] in the technical report: *[Attention Residuals: Scaling Laws and Architectural Insights](https://arxiv.org/pdf/2603.15031)*.
+This project is dedicated to the **Reproduction** and **Validation** of the core architectural insights proposed by [Kimi] in the technical report: *[Attention Residuals](https://arxiv.org/pdf/2603.15031)*.
 
 Our goal is to verify the **Scaling Laws** performance of the **Attention-Residual** architecture across various data scales and model sizes through rigorous controlled experiments.
 
